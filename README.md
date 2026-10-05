@@ -24,11 +24,21 @@
 
 后端不接触文件内容：渲染发生在前端沙箱 iframe 内，通过宿主通信桥调用插件 API。
 
-### DWG/DXF 的已知边界
+### DWG / DXF 的解析路径与边界
 
-- 解析引擎是 libredwg 的 WebAssembly 构建，图纸在浏览器内解析，无云端转换。
-- 覆盖 R13(R2000) 到 R2018 的常规 2D 图纸；`dwg_to_svg` 对个别实体（表格/未知类型）会抛错，因此这里改用自带的 `dwg-render.js` 逐实体渲染并单独兜底，跳过项会在界面提示。
-- 暂不渲染的实体：`3DSOLID`、`ACAD_TABLE`、`MULTILEADER`、`TOLERANCE`、`VIEWPORT`、OLE 对象。
+- **DWG**：libredwg 的 WebAssembly 构建，浏览器内解析私有二进制格式，无云端转换。
+- **DXF**：用 `dxf-parser` 解析（DXF 是公开文本格式）。随包的 libredwg 构建**只编译了 DWG 读取**——`dwg_read_data` 对任何 DXF 都返回空指针，最小合法文件也一样，因此 DXF 走独立适配器，再归一成同一套渲染结构。
+- 渲染统一由 `dwg-render.js` 完成：逐实体转换、逐条兜底，单个坏实体不会让整张图空白，跳过项会在界面提示。
+
+角度约定：两条路径的弧角度都是**弧度**（DXF 的 50/51 组码由 dxf-parser 换算），且从 start 逆时针扫到 end。
+
+覆盖与限制：
+
+| 项 | DWG | DXF |
+| --- | --- | --- |
+| 覆盖范围 | 常规 2D 图纸 | dxf-parser 支持的实体类型 |
+| 暂不渲染 | `3DSOLID`、`ACAD_TABLE`、`MULTILEADER`、`TOLERANCE`、`VIEWPORT`、OLE | `HATCH`、`WIPEOUT`、`XLINE`、`RAY`、`MLINE` 等解析器未实现的类型 |
+
 - 遇到损坏文件或超出支持范围的图纸，libredwg 会让 WASM 实例进入不可用状态；插件会立即重建实例（约 50ms），保证不影响后续文件。
 
 ## 构建

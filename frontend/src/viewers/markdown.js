@@ -16,18 +16,23 @@ for (const [name, language] of Object.entries({
 })) hljs.registerLanguage(name, language)
 
 // Markdown 渲染结果先经 marked 转义，再交给高亮器，避免直接注入原始 HTML。
-marked.setOptions({
+// marked v15 已移除旧的 `highlight` 选项，改为覆盖 code 渲染器。
+marked.use({
   gfm: true,
   breaks: false,
-  highlight(code, language) {
-    if (language && hljs.getLanguage(language)) {
+  renderer: {
+    code({ text, lang }) {
+      const language = lang && hljs.getLanguage(lang) ? lang : null
+      let html
       try {
-        return hljs.highlight(code, { language, ignoreIllegals: true }).value
+        html = language
+          ? hljs.highlight(text, { language, ignoreIllegals: true }).value
+          : hljs.highlightAuto(text).value
       } catch {
-        return code
+        html = text.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' })[c])
       }
+      return `<pre><code class="hljs${language ? ` language-${language}` : ''}">${html}</code></pre>`
     }
-    return hljs.highlightAuto(code).value
   }
 })
 

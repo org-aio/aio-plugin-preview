@@ -96,16 +96,17 @@ function visit(entity, matrix, box, out, depth, skipped, blocks) {
     case 'ARC': {
       const c = apply(matrix, ...point(entity.center))
       const radius = Math.abs(num(entity.radius)) * linearScale(matrix)
-      box.add(c[0] - radius, c[1] - radius)
-      box.add(c[0] + radius, c[1] + radius)
-      out.push({
-        kind: 'arc',
-        c,
-        radius,
-        start: num(entity.startAngle),
-        end: num(entity.endAngle),
-        layer
-      })
+      const start = num(entity.startAngle)
+      const end = num(entity.endAngle)
+      // 只把弧覆盖的角度范围算进包围盒；整圆外接矩形会让图幅明显偏大。
+      const full = Math.PI * 2
+      let sweep = end - start
+      while (sweep < 0) sweep += full
+      while (sweep > full) sweep -= full
+      for (const angle of arcExtents(start, sweep)) {
+        box.add(c[0] + radius * Math.cos(angle), c[1] - radius * Math.sin(angle))
+      }
+      out.push({ kind: 'arc', c, radius, start, end, layer })
       return
     }
     case 'ELLIPSE': {
@@ -298,6 +299,15 @@ function transformVertices(vertices, matrix) {
   }))
 }
 
+// 返回弧包围盒需要采样的角度：两个端点，以及区间内经过的四个象限边界。
+function arcExtents(start, sweep) {
+  const angles = [start, start + sweep]
+  for (const quadrant of [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2, Math.PI * 2]) {
+    if (quadrant >= start && quadrant <= start + sweep) angles.push(quadrant)
+  }
+  return angles
+}
+
 function polyline(vertices, closed, box, out, layer) {
   if (!vertices.length) return
   for (const vertex of vertices) box.add(...vertex.point)
@@ -328,20 +338,19 @@ function fixed(value) {
   return Number.isFinite(value) ? value.toFixed(3) : '0'
 }
 
-// DWG 角度逆时针，SVG 的 y 轴向下，因此按数学坐标反向取弧。
-function arcPath(c, radius, startDegrees, endDegrees) {
-  const start = (((endDegrees % 360) + 360) % 360)
-  const end = (((startDegrees % 360) + 360) % 360)
-  let sweep = end - start
-  if (sweep < 0) sweep += 360
-  const at = (degrees) => {
-    const radians = (degrees * Math.PI) / 180
-    return [c[0] + radius * Math.cos(radians), c[1] - radius * Math.sin(radians)]
-  }
-  const from = at(start)
-  const to = at(start + sweep)
-  const large = sweep > 180 ? 1 : 0
-  return `M${fixed(from[0])} ${fixed(from[1])} A${fixed(radius)} ${fixed(radius)} 0 ${large} 1 ${fixed(to[0])} ${fixed(to[1])}`
+// 弧角度约定：DWG/DXF（含 libredwg 与 dxf-parser）都以**弧度**给出 start/end，
+// 且从 start 逆时针扫到 end。SVG 的 y 轴向下，所以取 y 负向把数学坐标翻到屏幕上，
+// 数学逆时针在屏幕坐标里仍是逆时针（sweep-flag = 0）。
+function arcPath(c, radius, startRadians, endRadians) {
+  const full = Math.PI * 2
+  let sweep = endRadians - startRadians
+  while (sweep < 0) sweep += full
+  while (sweep > full) sweep -= full
+  const at = (angle) => [c[0] + radius * Math.cos(angle), c[1] - radius * Math.sin(angle)]
+  const from = at(startRadians)
+  const to = at(startRadians + sweep)
+  const large = sweep > Math.PI ? 1 : 0
+  return `M${fixed(from[0])} ${fixed(from[1])} A${fixed(radius)} ${fixed(radius)} 0 ${large} 0 ${fixed(to[0])} ${fixed(to[1])}`
 }
 
 // bulge = tan(θ/4)，正值表示 WCS 逆时针。

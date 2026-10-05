@@ -90,3 +90,26 @@ test('renders bulged polyline segments as arcs', () => {
   ]))
   assert.match(result.svg, / A[-\d.]+/)
 })
+
+test('treats arc angles as radians from start to end', () => {
+  // 半径 5、0 -> 90 度（radians 约定）的弧：端点 (5,0) 与 (0,5)。
+  const result = renderDatabase(database([
+    { type: 'ARC', layer: '0', center: { x: 0, y: 0 }, radius: 5, startAngle: 0, endAngle: Math.PI / 2 }
+  ]))
+  assert.equal(result.entityCount, 1)
+  const box = result.svg.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number)
+  // 若把弧度误当角度，弧会退化成极短片段，图幅会明显小于 5。
+  assert.ok(box[2] >= 5 && box[2] <= 5.6, `弧宽异常: ${box[2]}`)
+  assert.ok(box[3] >= 5 && box[3] <= 5.6, `弧高异常: ${box[3]}`)
+  assert.match(result.svg, / A5\.000 /, '应输出半径 5 的圆弧')
+})
+
+test('only counts the swept range of an arc in the bounding box', () => {
+  // 90 -> 180 度的弧位于第二象限，图幅不应包含整圆外接矩形。
+  const result = renderDatabase(database([
+    { type: 'ARC', layer: '0', center: { x: 0, y: 0 }, radius: 10, startAngle: Math.PI / 2, endAngle: Math.PI }
+  ]))
+  const box = result.svg.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number)
+  assert.ok(box[2] <= 11, `弧宽不应超过 11，实际 ${box[2]}`)
+  assert.ok(box[3] <= 11, `弧高不应超过 11，实际 ${box[3]}`)
+})

@@ -2,6 +2,7 @@
 // 不需要云端转换服务；渲染由本地的 dwg-render 完成，能对单个坏实体兜底。
 import { Dwg_File_Type, LibreDwg } from '@mlightcad/libredwg-web'
 import { renderDatabase } from './dwg-render.js'
+import { parseDxf } from './dxf.js'
 
 // WASM 放在入口同级目录（构建时从依赖复制，见 scripts/build.sh）。
 // 该包只导出入口、不允许深引用 wasm 子路径，因此不能走打包器的资源导入；
@@ -94,19 +95,25 @@ function attachNavigation(svg) {
 }
 
 export default async function dwg(container, file, helpers) {
-  // 先按扩展名指定类型；失败时再尝试另一种，兼容扩展名与实际内容不一致的文件。
-  const preferred = file.extension === 'dxf' ? Dwg_File_Type.DXF : Dwg_File_Type.DWG
-  const alternatives = [preferred, preferred === Dwg_File_Type.DWG ? Dwg_File_Type.DXF : Dwg_File_Type.DWG]
-
+  // DXF 是文本格式，且随包的 libredwg 构建不含 DXF 读取器，直接用 dxf-parser。
+  const isDxf = file.extension === 'dxf' || looksLikeDxf(file.bytes)
   let database = null
-  for (const type of alternatives) {
+  if (isDxf) {
+    try {
+      database = parseDxf(new TextDecoder('utf-8').decode(file.bytes))
+    } catch {
+      database = null
+    }
+  }
+  // 其余情况（以及被误命名的 DXF）走 libredwg 的 DWG 读取器。
+  if (!database) {
     try {
       database = await withLibreDwg((libredwg) => {
         const source = file.bytes.buffer.slice(
           file.bytes.byteOffset,
           file.bytes.byteOffset + file.bytes.byteLength
         )
-        const pointer = libredwg.dwg_read_data(source, type)
+        const pointer = libredwg.dwg_read_data(source, Dwg_File_Type.DWG)
         if (!pointer) return null
         try {
           return libredwg.convert(pointer)
@@ -117,12 +124,11 @@ export default async function dwg(container, file, helpers) {
     } catch {
       database = null
     }
-    if (database) break
   }
   if (!database) {
     const version = readVersion(file.bytes)
     throw new Error(
-      `图纸解析失败（识别版本 ${version || '未知'}）：文件可能损坏，或版本超出内置 libredwg 支持范围`
+      `图纸解析失败（识别版本 ${version || '未知'}）：文件可能损坏，或版本超出内置解析引擎支持范围`
     )
   }
 
@@ -149,6 +155,12 @@ export default async function dwg(container, file, helpers) {
   svg.style.maxWidth = 'none'
   svg.style.display = 'block'
   return attachNavigation(svg)
+}
+
+// DXF 以分组码文本开头，据此容忍扩展名与实际内容不一致的文件。
+function looksLikeDxf(bytes) {
+  const head = new TextDecoder('latin1').decode(bytes.subarray(0, 512))
+  return /^\s*0\s*\r?\nSECTION/m.test(head) || /^\s*999\s*\r?\n/.test(head)
 }
 
 // DWG 头部固定带 AC10xx 版本号，用于给出可读的错误提示。
