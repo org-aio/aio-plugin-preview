@@ -1,0 +1,7 @@
+/target
+/dist
+/frontend/node_modules
+/frontend/dist
+/frontend/*.log
+.DS_Store
+.tsbuildinfo

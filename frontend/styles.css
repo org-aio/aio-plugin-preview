@@ -1,0 +1,97 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --border: #d7dee5;
+  --text: #1f2937;
+  --muted: #64748b;
+  --accent: #0f766e;
+  --danger: #b42318;
+  --stage: #eef2f5;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101418;
+    --panel: #171d23;
+    --border: #2b3742;
+    --text: #e5e9ee;
+    --muted: #94a3b8;
+    --accent: #2dd4bf;
+    --danger: #fca5a5;
+    --stage: #0b0f13;
+  }
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); }
+
+#root { display: grid; grid-template-rows: auto auto 1fr auto; min-height: 100%; }
+
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 20px; background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-mark {
+  width: 30px; height: 30px; border-radius: 7px; flex: none;
+  background: linear-gradient(135deg, var(--accent), #0ea5e9);
+}
+.topbar h1 { margin: 0; font-size: 16px; font-weight: 650; }
+.host-context { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+.actions { margin-left: auto; display: flex; gap: 8px; }
+
+button, .download {
+  border: 1px solid var(--border); border-radius: 7px; background: var(--panel);
+  color: var(--text); padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; text-decoration: none; transition: border-color .15s, background .15s;
+}
+button:hover, .download:hover { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover { filter: brightness(1.08); color: #fff; }
+
+.dropzone {
+  margin: 18px; padding: 26px 20px; border: 2px dashed var(--border); border-radius: 12px;
+  background: var(--panel); text-align: center; transition: border-color .15s, background .15s;
+}
+.dropzone.dragging { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+.dropzone-title { margin: 0 0 6px; font-size: 15px; font-weight: 650; }
+.dropzone-hint { margin: 0 auto; max-width: 620px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.formats { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 16px; }
+.chip {
+  border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px;
+  font-size: 12px; color: var(--muted); background: var(--bg);
+}
+
+.workspace { display: grid; grid-template-rows: auto 1fr; margin: 0 18px 18px; min-height: 0; }
+.toolbar {
+  display: flex; align-items: center; gap: 12px; padding: 8px 4px;
+  border-bottom: 1px solid var(--border); min-width: 0;
+}
+.file-name { font-size: 13px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-meta, .renderer { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.renderer { border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; }
+.spacer { flex: 1; }
+
+.stage {
+  position: relative; margin-top: 12px; border: 1px solid var(--border); border-radius: 10px;
+  background: var(--stage); overflow: auto; min-height: 320px;
+}
+.stage.loading::after {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 26px; height: 26px; margin: -13px;
+  border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .stage.loading::after { animation: none; } }
+
+.stage > canvas, .stage > svg, .stage > img { display: block; }
+.stage img, .stage svg { max-width: 100%; }
+.stage .pane { height: 100%; width: 100%; border: 0; background: #fff; }
+.stage .cad-zoom { cursor: zoom-in; }
+
+.error { margin: 0 18px 14px; min-height: 20px; color: var(--danger); font-size: 13px; }

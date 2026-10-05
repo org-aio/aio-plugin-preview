@@ -1,0 +1,14 @@
+[frontend]
+inputs = ["frontend/src", "frontend/index.html", "frontend/styles.css", "frontend/package.json", "frontend/package-lock.json", "frontend/vite.config.js", "frontend/public"]
+command = ["sh", "-c", "cd frontend && npm run build"]
+output = "dist/frontend"
+
+[backend]
+inputs = ["Cargo.toml", "Cargo.lock", "src"]
+command = ["cargo", "build"]
+output = "target/debug/aio-plugin-preview"
+
+[run]
+command = ["{artifact}"]
+health = "/health"
+environment = { AIO_PLUGIN_PORT = "{port}" }

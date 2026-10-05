@@ -1,0 +1,12 @@
+[source.crates-io]
+replace-with = "aio-mirror"
+
+[source.aio-mirror]
+registry = "sparse+https://rsproxy.cn/index/"
+
+[net]
+retry = 3
+git-fetch-with-cli = true
+
+[http]
+timeout = 60

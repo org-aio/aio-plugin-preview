@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>文件预览</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111827'/%3E%3Cpath d='M9 8h9l5 5v11H9z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M18 8v5h5' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div id="root">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <h1>文件预览</h1>
+            <p id="host-context" class="host-context">正在读取宿主上下文…</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="pick" type="button" class="primary">打开文件</button>
+          <button id="clear" type="button">清空</button>
+        </div>
+      </header>
+
+      <section id="dropzone" class="dropzone">
+        <p class="dropzone-title">拖拽任意格式文件到此处</p>
+        <p class="dropzone-hint">支持 DWG/DXF 图纸、3D 模型、PDF、Office 文档、图片、音视频、代码与压缩包</p>
+        <div id="formats" class="formats"></div>
+      </section>
+
+      <section id="workspace" class="workspace" hidden>
+        <div class="toolbar">
+          <span id="file-name" class="file-name"></span>
+          <span id="file-meta" class="file-meta"></span>
+          <div class="spacer"></div>
+          <span id="renderer" class="renderer"></span>
+          <a id="download" class="download" download>下载</a>
+        </div>
+        <div id="stage" class="stage"></div>
+      </section>
+
+      <p id="error" class="error" role="alert"></p>
+    </div>
+    <input id="file-input" type="file" multiple hidden />
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
