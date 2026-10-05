@@ -7,7 +7,7 @@ export default function image(container, file, helpers) {
   element.style.maxWidth = '100%'
   element.style.margin = '0 auto'
   element.addEventListener('error', () => {
-    helpers.report(`无法解码图片「${file.name}」，可能是浏览器不支持的格式（如 HEIC/TIFF）`)
+    helpers.fail(`无法解码图片「${file.name}」，可能是浏览器不支持的格式（如 HEIC/TIFF）`)
   })
   container.replaceChildren(element)
   return () => helpers.revoke(url)

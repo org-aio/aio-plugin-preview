@@ -1,8 +1,8 @@
-// 3D 模型：Three.js 渲染，按扩展名选择对应加载器。
-// GLTF/GLB 是 Web 标准格式，其余格式由各自加载器在浏览器内解析。
-
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+
+// 3D 模型：Three.js 渲染，按扩展名选择对应加载器。
+// GLTF/GLB 是 Web 标准格式，其余格式由各自加载器在浏览器内解析。
 
 const LOADERS = {
   glb: () => import('three/examples/jsm/loaders/GLTFLoader.js').then((m) => ({ kind: 'gltf', Loader: m.GLTFLoader })),
@@ -18,41 +18,57 @@ const LOADERS = {
   xyz: () => import('three/examples/jsm/loaders/XYZLoader.js').then((m) => ({ kind: 'points', Loader: m.XYZLoader }))
 }
 
-// 解析为统一的 Object3D，便于统一加灯光、取包围盒。
+// 解析成统一的 Object3D。不同加载器的返回类型差异较大（Object3D / BufferGeometry /
+// { scene } / { data }），这里逐类归一，避免把非 Object3D 直接塞进场景。
 async function parse(extension, bytes) {
   const entry = await (LOADERS[extension] ?? LOADERS.glb)()
   const loader = new entry.Loader()
+  const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
 
-  // 多数加载器接受 ArrayBuffer 或文本；GLTF 需要按扩展名指定路径以解析外部引用。
-  if (entry.kind === 'gltf') {
-    return loader.parseAsync(bytes.buffer, '')
+  switch (entry.kind) {
+    case 'gltf': {
+      // GLTFLoader.parseAsync 返回整个 gltf 对象，要取其中的 scene。
+      const gltf = await loader.parseAsync(buffer, '')
+      return gltf?.scene ?? null
+    }
+    case 'collada': {
+      // ColladaLoader.parse 返回 { scene }。
+      return loader.parse(new TextDecoder().decode(bytes), '')?.scene ?? null
+    }
+    case 'object': {
+      // OBJ/FBX/3MF 直接返回 Object3D。
+      const text = extension === 'obj' || extension === 'fbx' ? new TextDecoder().decode(bytes) : null
+      const result = text === null ? loader.parse(buffer) : loader.parse(text, '')
+      return result ?? null
+    }
+    case 'points': {
+      // PCDLoader 返回 Points；XYZLoader 返回 BufferGeometry。
+      const result = loader.parse(buffer)
+      if (result?.isObject3D) return result
+      return toMesh(result, true)
+    }
+    default: {
+      // STL/PLY/VTK 返回 BufferGeometry。
+      return toMesh(loader.parse(buffer), false)
+    }
   }
-  if (entry.kind === 'collada') {
-    const result = loader.parse(new TextDecoder().decode(bytes), '')
-    return result.scene
-  }
-  if (extension === 'obj' || extension === 'fbx') {
-    const text = new TextDecoder().decode(bytes)
-    return loader.parse(text, '')
-  }
-  const geometry = loader.parse(bytes.buffer)
-  if (entry.kind === 'points' && geometry.isPoints) return geometry
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x93b4c8,
-    metalness: 0.1,
-    roughness: 0.75,
-    flatShading: false
-  })
-  const mesh = new THREE.Mesh(geometry, material)
-  // 点云类几何没有法线，补一份以保证被光照正常着色。
+}
+
+function toMesh(geometry, points) {
+  if (!geometry?.attributes?.position) return null
   if (!geometry.attributes.normal) geometry.computeVertexNormals()
-  return mesh
+  if (points) {
+    return new THREE.Points(geometry, new THREE.PointsMaterial({ size: 1, color: 0x93b4c8 }))
+  }
+  return new THREE.Mesh(
+    geometry,
+    new THREE.MeshStandardMaterial({ color: 0x93b4c8, metalness: 0.1, roughness: 0.75 })
+  )
 }
 
 export default async function model(container, file, helpers) {
-  const extension = file.extension
-  const object = await parse(extension, file.bytes)
-  if (!object) throw new Error(`无法解析 ${extension.toUpperCase()} 模型`)
+  const object = await parse(file.extension, file.bytes)
+  if (!object) throw new Error(`无法解析 ${file.extension.toUpperCase()} 模型`)
 
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0x11161c)
@@ -77,7 +93,8 @@ export default async function model(container, file, helpers) {
 
   const renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.style.cssText = 'display:block;width:100%;height:100%'
+  // WebGLRenderer 只暴露 domElement，没有 style 属性。
+  renderer.domElement.style.cssText = 'display:block;width:100%;height:100%'
   container.replaceChildren(renderer.domElement)
 
   const controls = new OrbitControls(camera, renderer.domElement)
@@ -106,18 +123,16 @@ export default async function model(container, file, helpers) {
   }
   frame()
 
-  const triangles = (() => {
-    let total = 0
-    object.traverse?.((node) => {
-      const geometry = node.geometry
-      const index = geometry?.index
-      if (index) total += index.count / 3
-      else if (geometry?.attributes?.position) total += geometry.attributes.position.count / 3
-    })
-    return Math.round(total)
-  })()
+  let triangles = 0
+  let vertices = 0
+  object.traverse((node) => {
+    const geometry = node.geometry
+    if (!geometry?.attributes?.position) return
+    vertices += geometry.attributes.position.count
+    triangles += geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3
+  })
   helpers.report(
-    `已解析 ${extension.toUpperCase()} 模型 · 三角面 ${triangles} 个 · 尺寸 ${size.x.toFixed(1)}×${size.y.toFixed(1)}×${size.z.toFixed(1)}`
+    `已解析 ${file.extension.toUpperCase()} 模型 · 三角面 ${Math.round(triangles)} 个 · 顶点 ${vertices} 个 · 尺寸 ${size.x.toFixed(2)}×${size.y.toFixed(2)}×${size.z.toFixed(2)}`
   )
 
   return () => {
@@ -125,7 +140,7 @@ export default async function model(container, file, helpers) {
     observer.disconnect()
     controls.dispose()
     renderer.dispose()
-    object.traverse?.((node) => {
+    object.traverse((node) => {
       node.geometry?.dispose?.()
       const material = node.material
       if (Array.isArray(material)) material.forEach((item) => item.dispose?.())

@@ -15,6 +15,7 @@ const dom = {
   renderer: document.getElementById('renderer'),
   download: document.getElementById('download'),
   context: document.getElementById('host-context'),
+  note: document.getElementById('note'),
   error: document.getElementById('error')
 }
 
@@ -22,7 +23,11 @@ let table = new Map()
 let objectUrl = null
 let disposeCurrent = null
 
+// 解析信息（格式、实体数、跳过项）与实际错误分开显示，避免把提示当成失败。
 function report(message) {
+  dom.note.textContent = message ?? ''
+}
+function fail(message) {
   dom.error.textContent = message ?? ''
 }
 
@@ -62,6 +67,7 @@ function rendererFor(file) {
 async function open(file) {
   release()
   report('')
+  fail('')
   const renderer = rendererFor(file)
   const bytes = new Uint8Array(await file.arrayBuffer())
   const input = { name: file.name, mime: file.type, extension: extensionOf(file.name), bytes }
@@ -81,13 +87,14 @@ async function open(file) {
     const helpers = {
       objectUrl: () => URL.createObjectURL(new Blob([input.bytes], { type: input.mime || undefined })),
       revoke: (url) => URL.revokeObjectURL(url),
-      report
+      report,
+      fail
     }
     const cleanup = await viewer(dom.stage, input, helpers)
     if (typeof cleanup === 'function') disposeCurrent = cleanup
   } catch (error) {
     console.error(error)
-    report(`无法预览「${file.name}」：${error?.message ?? error}`)
+    fail(`无法预览「${file.name}」：${error?.message ?? error}`)
     const fallback = await load('download')
     await fallback(dom.stage, input, { objectUrl: () => objectUrl })
   } finally {
@@ -122,6 +129,7 @@ dom.input.addEventListener('change', () => {
 dom.clear.addEventListener('click', () => {
   release()
   report('')
+  fail('')
   dom.workspace.hidden = true
   dom.dropzone.hidden = false
 })

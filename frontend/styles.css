@@ -94,4 +94,5 @@ button.primary:hover { filter: brightness(1.08); color: #fff; }
 .stage .pane { height: 100%; width: 100%; border: 0; background: #fff; }
 .stage .cad-zoom { cursor: zoom-in; }
 
-.error { margin: 0 18px 14px; min-height: 20px; color: var(--danger); font-size: 13px; }
+.note { margin: 0 18px 6px; min-height: 18px; color: var(--muted); font-size: 12.5px; }
+.error { margin: 0 18px 14px; min-height: 18px; color: var(--danger); font-size: 13px; }

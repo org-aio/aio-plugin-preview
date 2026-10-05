@@ -9,7 +9,7 @@ function build(container, file, helpers, tag) {
   element.style.margin = '0 auto'
   if (tag === 'video') element.style.maxHeight = 'calc(100vh - 220px)'
   element.addEventListener('error', () => {
-    helpers.report(`浏览器无法解码「${file.name}」；如需通用播放请转码为 MP4(H.264)/WebM`)
+    helpers.fail(`浏览器无法解码「${file.name}」；如需通用播放请转码为 MP4(H.264)/WebM`)
   })
   container.replaceChildren(element)
   return () => helpers.revoke(url)

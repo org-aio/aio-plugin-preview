@@ -14,7 +14,7 @@ function formatBytes(value) {
 
 export default async function archive(container, file, helpers) {
   if (file.extension !== 'zip') {
-    helpers.report(`压缩包「${file.extension}」暂不支持在线浏览，请下载后解压`)
+    helpers.fail(`压缩包「${file.extension}」暂不支持在线浏览，请下载后解压`)
     const fallback = await import('./download.js')
     return (fallback.default ?? fallback)(container, file, helpers)
   }
