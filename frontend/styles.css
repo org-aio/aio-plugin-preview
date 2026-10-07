@@ -26,6 +26,8 @@
 }
 
 * { box-sizing: border-box; }
+/* 作者样式里的 display 会覆盖 UA 的 [hidden]{display:none}，这里显式兜底。 */
+[hidden] { display: none !important; }
 html, body, #root { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--text); }
 

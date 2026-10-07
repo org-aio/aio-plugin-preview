@@ -43,6 +43,17 @@ function formatBytes(value) {
   return `${size.toFixed(index === 0 ? 0 : 1)} ${units[index]}`
 }
 
+// 把与「已打开文件」相关的界面状态全部复位，避免清空后残留文件名。
+function reset() {
+  report('')
+  fail('')
+  dom.name.textContent = ''
+  dom.meta.textContent = ''
+  dom.renderer.textContent = ''
+  dom.download.removeAttribute('href')
+  dom.download.removeAttribute('download')
+}
+
 function release() {
   if (typeof disposeCurrent === 'function') {
     try {
@@ -66,8 +77,7 @@ function rendererFor(file) {
 
 async function open(file) {
   release()
-  report('')
-  fail('')
+  reset()
   const renderer = rendererFor(file)
   const bytes = new Uint8Array(await file.arrayBuffer())
   const input = { name: file.name, mime: file.type, extension: extensionOf(file.name), bytes }
@@ -128,8 +138,7 @@ dom.input.addEventListener('change', () => {
 })
 dom.clear.addEventListener('click', () => {
   release()
-  report('')
-  fail('')
+  reset()
   dom.workspace.hidden = true
   dom.dropzone.hidden = false
 })
