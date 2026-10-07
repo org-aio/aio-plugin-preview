@@ -148,8 +148,11 @@ export default async function dwg(container, file, helpers) {
   helpers.report(`已解析 ${file.extension.toUpperCase()} 图纸 · ${notes.join(' · ')}`)
 
   const viewport = document.createElement('div')
-  viewport.style.cssText = 'width:100%;height:100%;min-height:480px;overflow:hidden;background:#fff'
+  viewport.style.cssText = 'width:100%;height:100%;overflow:hidden;background:#fff'
   const host = document.createElement('div')
+  // host 必须显式撑满：否则 SVG 的 height:100% 会落到 auto 高度上，
+  // 按 viewBox 宽高比撑高，纵向溢出可视区。
+  host.style.cssText = 'width:100%;height:100%'
   host.innerHTML = result.svg
   viewport.append(host)
   container.replaceChildren(viewport)
