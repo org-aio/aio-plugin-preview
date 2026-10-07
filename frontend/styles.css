@@ -79,7 +79,9 @@ button.primary:hover { filter: brightness(1.08); color: #fff; }
 
 .stage {
   position: relative; margin-top: 12px; border: 1px solid var(--border); border-radius: 10px;
-  background: var(--stage); overflow: auto; min-height: 320px;
+  background: var(--stage); overflow: auto;
+  /* 给定确定高度，CAD 的 SVG 才能用 height:100% 撑满并等比缩放。 */
+  height: clamp(320px, 68vh, 860px);
 }
 .stage.loading::after {
   content: ""; position: absolute; top: 50%; left: 50%; width: 26px; height: 26px; margin: -13px;

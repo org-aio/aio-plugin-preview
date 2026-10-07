@@ -37,7 +37,7 @@ async function withLibreDwg(work) {
   }
 }
 
-// 缩放与平移：滚轮缩放、拖动平移，视图变换只作用在 SVG 上。
+// 缩放与平移：滚轮以指针为锚点缩放，拖动平移；变换只作用在 SVG 上。
 function attachNavigation(svg) {
   let scale = 1
   let x = 0
@@ -58,8 +58,11 @@ function attachNavigation(svg) {
     const next = Math.min(80, Math.max(0.05, scale * (event.deltaY < 0 ? 1.15 : 1 / 1.15)))
     const ratio = next / scale
     const rect = svg.getBoundingClientRect()
-    x -= (event.clientX - rect.left) * (ratio - 1)
-    y -= (event.clientY - rect.top) * (ratio - 1)
+    const px = event.clientX - rect.left
+    const py = event.clientY - rect.top
+    // 保持指针下的图形位置不变。
+    x = px - ratio * (px - x)
+    y = py - ratio * (py - y)
     scale = next
     apply()
   }
@@ -152,7 +155,11 @@ export default async function dwg(container, file, helpers) {
   container.replaceChildren(viewport)
 
   const svg = host.querySelector('svg')
-  svg.style.maxWidth = 'none'
+  // 图纸尺寸常达数百万用户单位，直接作为 width/height 会把 SVG 撑到画布之外，
+  // 可视区只剩空白。改为占满容器并交给 viewBox 等比缩放，缩放/平移在此基础上叠加。
+  svg.setAttribute('width', '100%')
+  svg.setAttribute('height', '100%')
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
   svg.style.display = 'block'
   return attachNavigation(svg)
 }
