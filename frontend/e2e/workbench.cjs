@@ -23,13 +23,14 @@ async function run(browser, viewport, label) {
     await nav.getByRole('button', { name: /工作空间/ }).first().click()
     if (label === 'mobile') {
       const burger = page.getByRole('button', { name: '打开菜单' })
-      if (await burger.count()) { await burger.first().click() }
+      if (await burger.count()) { await burger.first().click(); await page.waitForTimeout(800) }
     }
     await page.getByRole('button', { name: '文件预览', exact: true }).last().click()
+    await page.waitForTimeout(800)
     frame = page.frameLocator('iframe[title="文件预览"]')
   }
   console.log(`${label}: waiting for plugin`)
-  await frame.locator('.chip').first().waitFor({ timeout: 120000 })
+  await frame.locator('.chip').first().waitFor({ state: 'attached', timeout: 120000 })
   console.log(`${label}: opening markdown`)
   await frame.locator('#file-input').setInputFiles([`${data}/fixtures/sample.md`, `${data}/fixtures/cube.stp`])
   await frame.locator('#stage article').waitFor()
