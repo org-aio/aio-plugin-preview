@@ -18,11 +18,11 @@
 
 ## 结构与边界
 
-- `src/main.rs`：Topcoat process 后端，只提供运行时契约（`/health`、`/aio/describe`）与格式能力表。
+- `src/main.rs`：Topcoat process 后端，提供运行时契约、格式能力表与用户浏览历史。
 - `src/formats.rs`：**前后端唯一的格式事实来源**，经 `/api/formats` 暴露。
 - `frontend/`：静态前端。壳与格式表很小，各渲染器按扩展名懒加载。
 
-后端不接触文件内容：渲染发生在前端沙箱 iframe 内，通过宿主通信桥调用插件 API。
+渲染发生在前端沙箱 iframe 内；浏览历史通过宿主通信桥把文件副本保存到插件数据库，供用户再次打开。
 
 ### DWG / DXF 的解析路径与边界
 
@@ -94,3 +94,11 @@ MIT
 OpenCascade / occt-import-js 遵循 LGPL-2.1 及 OpenCascade exception，DOMPurify 为 Apache-2.0 或 MPL-2.0，随依赖保留其许可。
 
 AIO 沙箱禁止 iframe 直接下载，正式使用 `aioPlugin.download` 宿主桥；下载上限 16 MiB，旧宿主会给出明确错误并保留草稿。
+
+## 0.1.9 浏览历史
+
+浏览成功后保存文件副本和最后打开时间，按宿主注入的租户、用户隔离，刷新或换浏览器登录后可以重新打开。原始文件内容会存储在 AIO 插件专用 PostgreSQL 数据库；未下载的编辑草稿仍只在内存中，下载修改版后新文件进入历史。
+
+保存期限为最后打开起 30 天，读取列表时清理，进程每小时额外清理过期正文。相同名称和内容去重；每人最多 100 条 / 256 MiB，单文件上限 4 MiB，超过上限显示未保存提示。删除历史会删除副本，工作区“清空”只清理当前文件和草稿。
+
+数据库迁移在 `migrations/001_preview_history.sql`，进程从 AIO 授权配置读取数据库连接，本地测试通过 `AIO_PREVIEW_DATABASE_URL` 指定独立数据库。运行 `cargo test --locked history_retention -- --ignored` 验证过期边界和隔离。

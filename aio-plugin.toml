@@ -20,5 +20,8 @@ worker_capabilities = []
 [plugin.frontend]
 path = "dist/frontend"
 
+[plugin.database]
+migrations = "migrations"
+
 [plugin.capabilities]
-database = false
+database = true

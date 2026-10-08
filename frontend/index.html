@@ -46,6 +46,16 @@
         </div>
       </section>
 
+      <details id="history-panel" class="history-panel" open>
+        <summary>浏览历史 · 保存 30 天</summary>
+        <p class="history-hint">文件副本保存在 AIO，按账号隔离。单文件最多 4 MiB，最多 100 条 / 256 MiB；过期或超限自动移除。清空当前工作区不会删除历史。</p>
+        <div class="viewer-toolbar">
+          <input id="history-filter" type="search" placeholder="筛选浏览历史…" aria-label="筛选浏览历史" />
+          <button id="history-clear" type="button">删除全部历史</button>
+          <span id="history-status" class="file-meta" role="status"></span>
+        </div>
+        <div id="history-list" class="history-list"></div>
+      </details>
       <p id="note" class="note"></p>
       <p id="error" class="error" role="alert"></p>
     </div>
@@ -55,6 +65,14 @@
       <form method="dialog" class="actions">
         <button value="cancel" autofocus>保留草稿</button>
         <button value="clear">清空全部</button>
+      </form>
+    </dialog>
+    <dialog id="history-delete-dialog" aria-labelledby="history-delete-title">
+      <h2 id="history-delete-title">删除浏览历史？</h2>
+      <p>记录及保存的文件副本会一起删除，当前打开的文件不受影响。</p>
+      <form method="dialog" class="actions">
+        <button value="cancel" autofocus>取消</button>
+        <button value="delete">确认删除</button>
       </form>
     </dialog>
     <input id="file-input" type="file" multiple hidden />

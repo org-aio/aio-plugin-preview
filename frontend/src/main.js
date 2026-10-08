@@ -1,3 +1,4 @@
+import { mountHistory } from './history.js'
 import '../styles.css'
 import { capabilities, downloadFile, hasHost, identity } from './host.js'
 import { extensionOf, FALLBACK_FORMATS, load, tableFrom } from './registry.js'
@@ -28,6 +29,7 @@ const drafts = new Map()
 let table = new Map()
 let objectUrl = null
 let disposeCurrent = null
+let rememberFile = () => {}
 
 // 解析信息（格式、实体数、跳过项）与实际错误分开显示，避免把提示当成失败。
 function report(message) {
@@ -125,6 +127,7 @@ async function open(file) {
       return
     }
     dom.stage.replaceChildren(host)
+    rememberFile(drafts.get(file)?.file ?? file)
     if (typeof cleanup === 'function') { disposeCurrent = cleanup }
   } catch (error) {
     if (ticket !== generation) { return }
@@ -251,6 +254,7 @@ async function boot() {
   const [caps, me] = await Promise.all([capabilities(), identity()])
   table = tableFrom(caps?.formats?.length ? caps.formats : FALLBACK_FORMATS)
   wireFormats()
+  rememberFile = mountHistory(async (file) => { files.push(file); await open(file) })
   dom.context.textContent = hasHost()
     ? `宿主租户 ${me.tenant_id || '未提供'} · 用户 ${me.user_id || '未提供'}`
     : '独立开发模式（未连接 AIO 宿主）'

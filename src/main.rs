@@ -1,10 +1,11 @@
 //! AIO 文件预览插件的进程后端。
 //!
-//! 渲染全部在隔离前端的浏览器内完成；后端只提供运行时契约
-//! （`/health`、`/aio/describe`）和一张供前端使用的格式能力表，
+//! 渲染在隔离前端的浏览器内完成；后端提供账号隔离的文件历史、
+//! 运行时契约（`/health`、`/aio/describe`）和格式能力表，
 //! 保证前端与后端对“支持哪些格式”只有一处定义。
 
 mod formats;
+mod history;
 
 use std::env;
 
@@ -12,12 +13,7 @@ use serde::{Deserialize, Serialize};
 use topcoat::{
     Result,
     context::Cx,
-    router::{
-        Router, RouterBuilderDiscoverExt,
-        content::Json,
-        request::headers,
-        route,
-    },
+    router::{Router, RouterBuilderDiscoverExt, content::Json, request::headers, route},
 };
 
 /// 宿主注入的调用身份，用于回显当前租户与用户。
@@ -41,6 +37,19 @@ struct RenderRequest {
 
 #[tokio::main]
 async fn main() {
+    if env::var_os("AIO_PLUGIN_CONFIG").is_some()
+        || env::var_os("AIO_PREVIEW_DATABASE_URL").is_some()
+    {
+        tokio::spawn(async {
+            let mut timer = tokio::time::interval(std::time::Duration::from_secs(3600));
+            loop {
+                timer.tick().await;
+                if let Err(error) = history::prune().await {
+                    eprintln!("清理过期浏览历史失败：{error}");
+                }
+            }
+        });
+    }
     if let Ok(port) = env::var("AIO_PLUGIN_PORT") {
         // Topcoat 读取 PORT；AIO 隔离进程只注入 AIO_PLUGIN_PORT。
         unsafe { env::set_var("PORT", port) };
