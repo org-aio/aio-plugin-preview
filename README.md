@@ -7,8 +7,8 @@
 | 渲染器 | 格式 |
 | --- | --- |
 | CAD | `dwg` `dxf`（libredwg WebAssembly，浏览器内解析） |
-| 3D 模型 | `glb` `gltf` `obj` `stl` `ply` `fbx` `dae` `3mf` `vtk` `pcd` `xyz`（Three.js） |
-| 文档 | `pdf`（PDF.js）、`docx`（docx-preview）、`xlsx` `xls` `ods`（SheetJS）、`md` |
+| 3D 模型 | `step` `stp` `iges` `igs` `brep`（OpenCascade WASM）、`glb` `gltf` `obj` `stl` `ply` `fbx` `dae` `3mf` `vtk` `pcd` `xyz`（Three.js） |
+| 文档 | `pdf`（PDF.js）、`docx`（docx-preview）、`xlsx` `xls` `ods`（SheetJS）、`md`（编辑、实时预览、下载修改版） |
 | 图片 | `png` `jpg` `gif` `webp` `bmp` `svg` `avif` `ico` `tif` 等 |
 | 音视频 | `mp4` `webm` `mov` `mp3` `wav` `flac` 等（浏览器原生解码） |
 | 代码文本 | 80+ 扩展名，Highlight.js 按需高亮 |
@@ -80,3 +80,17 @@ AIO_PLUGIN_PUBLISH_TOKEN=<来源绑定凭证> aio plugin publish dist/plugin.aio
 MIT
 
 第三方：libredwg 为 GPL-3.0（以 WebAssembly 形式随包分发），Three.js、PDF.js、SheetJS、docx-preview、JSZip、marked、Highlight.js 均为各自开源许可。
+
+## 0.1.8 新增能力
+
+- 多文件列表、文件名筛选、切换；清空同步移除全部文件及草稿。
+- Markdown 编辑和实时预览；切换文件保留内存草稿，下载修改版后自动打开新文件。下载不会覆盖原文件，刷新页面会丢失未下载的草稿。
+- STEP/STP、IGES/IGS、BREP 由 occt-import-js 在浏览器内转为网格，工程模型使用 Z 轴向上，输出单位为毫米。新增依赖是因为 Three.js 没有 STEP 读取器，完整 opencascade.js 体积更大。DOMPurify 清理 Markdown 原始 HTML。
+- CAD 图层开关、文字搜索、回车/按钮逐个定位、显示全图。尚不支持 CAD 改字、DWG 写回、PDF 导出与图框分页。
+- 移除没有加载器的 3DS 声明。压缩包在线目录浏览目前仅 ZIP，其余格式明确提示下载。
+
+真实浏览器回归脚本：`frontend/e2e/workbench.cjs`。运行时通过环境变量提供 `AIO_URL`、`AIO_TEST_DATA`、`AIO_TEST_OUTPUT`；测试安装后的宿主插件时额外提供 `AIO_SESSION`。Playwright 由测试环境提供，不加入插件运行依赖。
+
+OpenCascade / occt-import-js 遵循 LGPL-2.1 及 OpenCascade exception，DOMPurify 为 Apache-2.0 或 MPL-2.0，随依赖保留其许可。
+
+AIO 沙箱禁止 iframe 直接下载，正式使用 `aioPlugin.download` 宿主桥；下载上限 16 MiB，旧宿主会给出明确错误并保留草稿。

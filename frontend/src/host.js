@@ -33,3 +33,23 @@ export async function capabilities() {
     return null
   }
 }
+
+// 隔离 iframe 的下载必须由宿主执行，独立开发时使用浏览器原生下载。
+export async function downloadFile(file) {
+  const plugin = bridge()
+  if (plugin) {
+    if (!plugin.download) { throw new Error('宿主暂不支持文件下载，请刷新页面加载新版本') }
+    if (file.size > 16 * 1024 * 1024) { throw new Error('文件超过宿主下载上限 16 MiB') }
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    await plugin.download(file.name, bytes, file.type || 'application/octet-stream')
+    return
+  }
+  const url = URL.createObjectURL(file)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = file.name
+  document.body.append(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 60000)
+}

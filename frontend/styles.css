@@ -100,3 +100,44 @@ button.primary:hover { filter: brightness(1.08); color: #fff; }
 
 .note { margin: 0 18px 6px; min-height: 18px; color: var(--muted); font-size: 12.5px; }
 .error { margin: 0 18px 14px; min-height: 18px; color: var(--danger); font-size: 13px; }
+
+.file-workbench { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 12px; }
+.file-browser { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); overflow: auto; max-height: 68vh; padding: 8px; }
+input, textarea { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font: inherit; }
+#file-filter { width: 100%; padding: 8px; font-size: 12px; }
+.file-list { display: grid; gap: 4px; margin-top: 8px; }
+.file-list button { text-align: left; font-weight: 400; overflow-wrap: anywhere; padding: 8px; }
+.file-list button[aria-current="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
+.viewer-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px; border-bottom: 1px solid var(--border); background: var(--panel); }
+.markdown-workbench { height: 100%; display: flex; flex-direction: column; }
+.markdown-body { flex: 1; min-height: 0; overflow: auto; }
+.markdown-body.editing { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; }
+.markdown-body textarea { width: 100%; height: 100%; resize: none; border-radius: 0; padding: 16px; font: 13px/1.7 ui-monospace, monospace; tab-size: 2; }
+.markdown-preview { padding: 20px 26px; background: var(--panel); color: var(--text); line-height: 1.75; overflow: auto; overflow-wrap: anywhere; }
+.markdown-preview table { border-collapse: collapse; width: 100%; }
+.markdown-preview th, .markdown-preview td { border: 1px solid var(--border); padding: 6px 10px; }
+.markdown-preview pre { background: #f6f8fa; color: #1f2937; padding: 12px; border-radius: 8px; overflow: auto; }
+.markdown-preview img { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 680px) {
+  .file-workbench { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .file-browser { max-height: 150px; }
+  .file-list { display: flex; overflow: auto; }
+  .file-list button { flex: 0 0 140px; }
+  .markdown-body.editing { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+  .toolbar { flex-wrap: wrap; }
+  .file-meta { white-space: normal; }
+}
+.cad-workbench { height: 100%; display: flex; flex-direction: column; }
+.cad-workbench > div:last-child { flex: 1; min-height: 0; }
+.cad-workbench input[type="search"] { padding: 8px; width: 180px; }
+.cad-match { fill: #d97706; }
+.cad-active-match { fill: #e11d48; stroke: #e11d48; stroke-width: 0.2; }
+.cad-layers { position: relative; font-size: 13px; }
+.cad-layers summary { padding: 8px; cursor: pointer; }
+.cad-layer-choices { position: absolute; z-index: 5; top: 100%; left: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: grid; gap: 8px; min-width: 180px; max-height: 240px; overflow: auto; }
+.cad-layer-choices label { display: flex; gap: 8px; align-items: center; }
+dialog { border: 1px solid var(--border); border-radius: 12px; padding: 24px; background: var(--panel); color: var(--text); max-width: min(420px, 90vw); }
+dialog::backdrop { background: #0008; }
+dialog h2 { font-size: 17px; margin-top: 0; }
+dialog p { color: var(--muted); font-size: 14px; }

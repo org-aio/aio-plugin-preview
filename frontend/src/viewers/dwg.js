@@ -3,6 +3,7 @@
 import { Dwg_File_Type, LibreDwg } from '@mlightcad/libredwg-web'
 import { renderDatabase } from './dwg-render.js'
 import { parseDxf } from './dxf.js'
+import { cadTools } from './cad-tools.js'
 
 // WASM 放在入口同级目录（构建时从依赖复制，见 scripts/build.sh）。
 // 该包只导出入口、不允许深引用 wasm 子路径，因此不能走打包器的资源导入；
@@ -57,7 +58,7 @@ function attachNavigation(svg) {
     event.preventDefault()
     const next = Math.min(80, Math.max(0.05, scale * (event.deltaY < 0 ? 1.15 : 1 / 1.15)))
     const ratio = next / scale
-    const rect = svg.getBoundingClientRect()
+    const rect = svg.parentElement.getBoundingClientRect()
     const px = event.clientX - rect.left
     const py = event.clientY - rect.top
     // 保持指针下的图形位置不变。
@@ -89,12 +90,14 @@ function attachNavigation(svg) {
   svg.addEventListener('pointerdown', onDown)
   window.addEventListener('pointermove', onMove)
   window.addEventListener('pointerup', onUp)
-  return () => {
+  const cleanup = () => {
     svg.removeEventListener('wheel', onWheel)
     svg.removeEventListener('pointerdown', onDown)
     window.removeEventListener('pointermove', onMove)
     window.removeEventListener('pointerup', onUp)
   }
+  cleanup.reset = () => { scale = 1; x = 0; y = 0; apply() }
+  return cleanup
 }
 
 export default async function dwg(container, file, helpers) {
@@ -155,7 +158,10 @@ export default async function dwg(container, file, helpers) {
   host.style.cssText = 'width:100%;height:100%'
   host.innerHTML = result.svg
   viewport.append(host)
-  container.replaceChildren(viewport)
+  const workbench = document.createElement('div')
+  workbench.className = 'cad-workbench'
+  workbench.append(viewport)
+  container.replaceChildren(workbench)
 
   const svg = host.querySelector('svg')
   // 图纸尺寸常达数百万用户单位，直接作为 width/height 会把 SVG 撑到画布之外，
@@ -164,7 +170,10 @@ export default async function dwg(container, file, helpers) {
   svg.setAttribute('height', '100%')
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet')
   svg.style.display = 'block'
-  return attachNavigation(svg)
+  const navigation = attachNavigation(svg)
+  const tools = cadTools(svg, navigation)
+  workbench.prepend(tools)
+  return navigation
 }
 
 // DXF 以分组码文本开头，据此容忍扩展名与实际内容不一致的文件。

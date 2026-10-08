@@ -21,7 +21,12 @@ const LOADERS = {
 // 解析成统一的 Object3D。不同加载器的返回类型差异较大（Object3D / BufferGeometry /
 // { scene } / { data }），这里逐类归一，避免把非 Object3D 直接塞进场景。
 async function parse(extension, bytes) {
-  const entry = await (LOADERS[extension] ?? LOADERS.glb)()
+  if (['step', 'stp', 'iges', 'igs', 'brep'].includes(extension)) {
+    const { parseCadModel } = await import('./step.js')
+    return parseCadModel(extension, bytes)
+  }
+  if (!LOADERS[extension]) { throw new Error(`不支持的模型格式：${extension}`) }
+  const entry = await LOADERS[extension]()
   const loader = new entry.Loader()
   const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
 
@@ -88,6 +93,7 @@ export default async function model(container, file, helpers) {
   scene.add(fill)
 
   const camera = new THREE.PerspectiveCamera(45, 1, radius / 1000, radius * 1000)
+  if (['step', 'stp', 'iges', 'igs', 'brep'].includes(file.extension)) { camera.up.set(0, 0, 1) }
   camera.position.set(center.x + radius * 1.4, center.y + radius * 1.1, center.z + radius * 1.6)
   camera.lookAt(center)
 

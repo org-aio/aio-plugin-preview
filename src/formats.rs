@@ -33,17 +33,122 @@ macro_rules! spec {
 
 pub fn all() -> Vec<Format> {
     vec![
-        spec!("image", "image", "图片", ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "avif", "ico", "tif", "tiff"]),
+        spec!(
+            "image",
+            "image",
+            "图片",
+            [
+                "png", "jpg", "jpeg", "gif", "webp", "bmp", "svg", "avif", "ico", "tif", "tiff"
+            ]
+        ),
         spec!("pdf", "document", "PDF", ["pdf"]),
-        spec!("video", "media", "视频", ["mp4", "webm", "ogv", "mov", "m4v"]),
-        spec!("audio", "media", "音频", ["mp3", "wav", "ogg", "oga", "m4a", "flac", "aac"]),
-        spec!("text", "code", "文本与代码", ["txt", "log", "csv", "tsv", "json", "xml", "yaml", "yml", "toml", "ini", "conf", "env", "sh", "bash", "zsh", "ps1", "bat", "py", "rs", "go", "java", "kt", "kts", "c", "h", "cpp", "hpp", "cc", "cs", "rb", "php", "js", "jsx", "mjs", "cjs", "ts", "tsx", "vue", "svelte", "css", "scss", "less", "html", "htm", "sql", "gql", "graphql", "proto", "dockerfile", "makefile", "gradle", "lua", "swift", "dart", "scala", "r", "m", "pl", "vim"]),
-        spec!("markdown", "document", "Markdown", ["md", "markdown", "mdx"]),
+        spec!(
+            "video",
+            "media",
+            "视频",
+            ["mp4", "webm", "ogv", "mov", "m4v"]
+        ),
+        spec!(
+            "audio",
+            "media",
+            "音频",
+            ["mp3", "wav", "ogg", "oga", "m4a", "flac", "aac"]
+        ),
+        spec!(
+            "text",
+            "code",
+            "文本与代码",
+            [
+                "txt",
+                "log",
+                "csv",
+                "tsv",
+                "json",
+                "xml",
+                "yaml",
+                "yml",
+                "toml",
+                "ini",
+                "conf",
+                "env",
+                "sh",
+                "bash",
+                "zsh",
+                "ps1",
+                "bat",
+                "py",
+                "rs",
+                "go",
+                "java",
+                "kt",
+                "kts",
+                "c",
+                "h",
+                "cpp",
+                "hpp",
+                "cc",
+                "cs",
+                "rb",
+                "php",
+                "js",
+                "jsx",
+                "mjs",
+                "cjs",
+                "ts",
+                "tsx",
+                "vue",
+                "svelte",
+                "css",
+                "scss",
+                "less",
+                "html",
+                "htm",
+                "sql",
+                "gql",
+                "graphql",
+                "proto",
+                "dockerfile",
+                "makefile",
+                "gradle",
+                "lua",
+                "swift",
+                "dart",
+                "scala",
+                "r",
+                "m",
+                "pl",
+                "vim"
+            ]
+        ),
+        spec!(
+            "markdown",
+            "document",
+            "Markdown",
+            ["md", "markdown", "mdx"]
+        ),
         spec!("docx", "document", "Word", ["docx"]),
-        spec!("xlsx", "document", "表格", ["xlsx", "xls", "xlsm", "ods", "csvx"]),
+        spec!(
+            "xlsx",
+            "document",
+            "表格",
+            ["xlsx", "xls", "xlsm", "ods", "csvx"]
+        ),
         spec!("dwg", "cad", "CAD 图纸", ["dwg", "dxf"]),
-        spec!("model", "model", "3D 模型", ["glb", "gltf", "obj", "stl", "ply", "fbx", "dae", "3ds", "3mf", "vtk", "pcd", "xyz"]),
-        spec!("archive", "archive", "压缩包", ["zip", "tar", "gz", "tgz", "bz2", "xz", "7z", "rar"]),
+        spec!(
+            "model",
+            "model",
+            "3D 模型",
+            [
+                "step", "stp", "iges", "igs", "brep", "glb", "gltf", "obj", "stl", "ply", "fbx",
+                "dae", "3mf", "vtk", "pcd", "xyz"
+            ]
+        ),
+        spec!(
+            "archive",
+            "archive",
+            "压缩包",
+            ["zip", "tar", "gz", "tgz", "bz2", "xz", "7z", "rar"]
+        ),
     ]
 }
 
@@ -90,7 +195,11 @@ mod tests {
     #[test]
     fn every_renderer_is_reachable_from_at_least_one_extension() {
         for format in all() {
-            assert!(!format.extensions.is_empty(), "{} 没有扩展名", format.renderer);
+            assert!(
+                !format.extensions.is_empty(),
+                "{} 没有扩展名",
+                format.renderer
+            );
             for extension in format.extensions {
                 assert_eq!(detect(&format!("file.{extension}")), format.renderer);
             }

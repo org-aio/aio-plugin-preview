@@ -13,3 +13,12 @@ copyFileSync(
   target
 )
 console.log('已复制 libredwg-web.wasm → public/')
+
+copyFileSync(resolve(root, 'node_modules/occt-import-js/dist/occt-import-js.wasm'), resolve(root, 'public/occt-import-js.wasm'))
+
+const licenses = resolve(root, 'public/licenses')
+mkdirSync(licenses, { recursive: true })
+for (const name of ['license.occt.txt', 'license.occt-import-js.txt']) {
+  copyFileSync(resolve(root, 'node_modules/occt-import-js/dist', name), resolve(licenses, name))
+}
+copyFileSync(resolve(root, 'node_modules/dompurify/LICENSE'), resolve(licenses, 'dompurify.txt'))

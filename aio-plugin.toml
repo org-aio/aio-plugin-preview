@@ -2,7 +2,7 @@ schema_version = 2
 
 [plugin.marketplace]
 title = "文件预览"
-summary = "在 AIO 内直接预览 DWG/DXF 图纸、3D 模型、PDF、Office 文档、图片、音视频、代码与压缩包，全部在浏览器内解析。"
+summary = "在 AIO 内编辑 Markdown、浏览 DWG/DXF 图纸、STEP/STP 等 3D 模型、PDF、Office 文档与常见文件，全部在浏览器内解析。"
 license = "MIT"
 tags = ["preview", "file", "dwg", "cad", "3d", "pdf", "office"]
 

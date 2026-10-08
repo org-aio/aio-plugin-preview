@@ -44,7 +44,7 @@ export const FALLBACK_FORMATS = [
   { renderer: 'docx', category: 'document', label: 'Word', extensions: ['docx'] },
   { renderer: 'xlsx', category: 'document', label: '表格', extensions: ['xlsx', 'xls', 'xlsm', 'ods'] },
   { renderer: 'dwg', category: 'cad', label: 'CAD 图纸', extensions: ['dwg', 'dxf'] },
-  { renderer: 'model', category: 'model', label: '3D 模型', extensions: ['glb', 'gltf', 'obj', 'stl', 'ply', 'fbx', 'dae', '3ds', '3mf', 'vtk', 'pcd', 'xyz'] },
+  { renderer: 'model', category: 'model', label: '3D 模型', extensions: ['step', 'stp', 'iges', 'igs', 'brep', 'glb', 'gltf', 'obj', 'stl', 'ply', 'fbx', 'dae', '3mf', 'vtk', 'pcd', 'xyz'] },
   { renderer: 'archive', category: 'archive', label: '压缩包', extensions: ['zip', 'tar', 'gz', 'tgz', 'bz2', 'xz', '7z', 'rar'] },
   { renderer: 'text', category: 'code', label: '文本与代码', extensions: ['txt', 'log', 'csv', 'tsv', 'json', 'xml', 'yaml', 'yml', 'toml', 'ini', 'conf', 'env', 'sh', 'bash', 'zsh', 'ps1', 'bat', 'py', 'rs', 'go', 'java', 'kt', 'kts', 'c', 'h', 'cpp', 'hpp', 'cc', 'cs', 'rb', 'php', 'js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'vue', 'svelte', 'css', 'scss', 'less', 'html', 'htm', 'sql', 'gql', 'graphql', 'proto', 'dockerfile', 'makefile', 'gradle', 'lua', 'swift', 'dart', 'scala', 'r', 'm', 'pl', 'vim'] }
 ]

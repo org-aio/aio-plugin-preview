@@ -11,18 +11,20 @@
     "dev": "node scripts/copy-wasm.mjs && vite --host 127.0.0.1",
     "build": "node scripts/copy-wasm.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test src/**/*.test.mjs",
-    "check": "node --test src/**/*.test.mjs && vite build",
+    "test": "node --test src/*.test.mjs src/viewers/*.test.mjs",
+    "check": "node --test src/*.test.mjs src/viewers/*.test.mjs && npm run build",
     "prepare:wasm": "node scripts/copy-wasm.mjs"
   },
   "dependencies": {
     "@mlightcad/libredwg-web": "0.7.14",
     "docx-preview": "0.4.1",
+    "dompurify": "3.3.3",
     "dxf-parser": "1.1.2",
     "fflate": "0.8.2",
     "highlight.js": "11.11.1",
     "jszip": "3.10.1",
     "marked": "15.0.7",
+    "occt-import-js": "0.0.23",
     "pdfjs-dist": "6.4.299",
     "three": "0.186.1",
     "xlsx": "0.18.5"

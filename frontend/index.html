@@ -37,12 +37,26 @@
           <span id="renderer" class="renderer"></span>
           <a id="download" class="download" download>下载</a>
         </div>
-        <div id="stage" class="stage"></div>
+        <div class="file-workbench">
+          <aside id="file-browser" class="file-browser" aria-label="已打开文件">
+            <input id="file-filter" type="search" placeholder="筛选文件…" aria-label="筛选文件" />
+            <div id="file-list" class="file-list"></div>
+          </aside>
+          <div id="stage" class="stage"></div>
+        </div>
       </section>
 
       <p id="note" class="note"></p>
       <p id="error" class="error" role="alert"></p>
     </div>
+    <dialog id="clear-dialog" aria-labelledby="clear-title">
+      <h2 id="clear-title">清空文件和草稿？</h2>
+      <p>还有未下载的修改，清空后无法恢复。</p>
+      <form method="dialog" class="actions">
+        <button value="cancel" autofocus>保留草稿</button>
+        <button value="clear">清空全部</button>
+      </form>
+    </dialog>
     <input id="file-input" type="file" multiple hidden />
     <script type="module" src="/src/main.js"></script>
   </body>

@@ -403,7 +403,7 @@ function draw(entity, span) {
     case 'text': {
       const degrees = (entity.radians * 180) / Math.PI
       const transform = degrees ? ` transform="rotate(${degrees.toFixed(3)} ${fixed(entity.p[0])} ${fixed(entity.p[1])})"` : ''
-      return `<text x="${fixed(entity.p[0])}" y="${fixed(entity.p[1])}" font-size="${fixed(entity.height)}" fill="${STROKE}"${transform}>${escape(entity.text)}</text>`
+      return `<text x="${fixed(entity.p[0])}" y="${fixed(entity.p[1])}" font-size="${fixed(entity.height)}" fill="${STROKE}" stroke="none"${transform}>${escape(entity.text)}</text>`
     }
     case 'ray': {
       const [dx, dy] = entity.dir
@@ -452,7 +452,7 @@ export function renderDatabase(database) {
   const totalHeight = height + margin * 2
   const span = Math.hypot(width, height) * 2 || 1000
 
-  const body = entities.map((entity) => draw(entity, span)).join('')
+  const body = entities.map((entity) => `<g data-layer="${escape(String(entity.layer ?? '0'))}">${draw(entity, span)}</g>`).join('')
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${fixed(minX)} ${fixed(minY)} ${fixed(totalWidth)} ${fixed(totalHeight)}" ` +
     `width="${fixed(totalWidth)}" height="${fixed(totalHeight)}" ` +
