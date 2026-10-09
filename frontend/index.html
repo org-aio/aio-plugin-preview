@@ -23,39 +23,37 @@
         </div>
       </header>
 
-      <section id="dropzone" class="dropzone">
-        <p class="dropzone-title">拖拽任意格式文件到此处</p>
-        <p class="dropzone-hint">支持 DWG/DXF 图纸、3D 模型、PDF、Office 文档、图片、音视频、代码与压缩包</p>
-        <div id="formats" class="formats"></div>
-      </section>
-
-      <section id="workspace" class="workspace" hidden>
-        <div class="toolbar">
-          <span id="file-name" class="file-name"></span>
-          <span id="file-meta" class="file-meta"></span>
-          <div class="spacer"></div>
-          <span id="renderer" class="renderer"></span>
-          <a id="download" class="download" download>下载</a>
-        </div>
-        <div class="file-workbench">
-          <aside id="file-browser" class="file-browser" aria-label="已打开文件">
-            <input id="file-filter" type="search" placeholder="筛选文件…" aria-label="筛选文件" />
-            <div id="file-list" class="file-list"></div>
-          </aside>
-          <div id="stage" class="stage"></div>
-        </div>
-      </section>
-
-      <details id="history-panel" class="history-panel" open>
-        <summary>浏览历史 · 保存 30 天</summary>
-        <p class="history-hint">文件副本保存在 AIO，按账号隔离。单文件最多 4 MiB，最多 100 条 / 256 MiB；过期或超限自动移除。清空当前工作区不会删除历史。</p>
-        <div class="viewer-toolbar">
-          <input id="history-filter" type="search" placeholder="筛选浏览历史…" aria-label="筛选浏览历史" />
-          <button id="history-clear" type="button">删除全部历史</button>
-          <span id="history-status" class="file-meta" role="status"></span>
-        </div>
-        <div id="history-list" class="history-list"></div>
-      </details>
+      <div class="file-workbench">
+        <aside id="file-browser" class="file-browser" aria-label="文件与浏览历史">
+          <div class="browser-heading">文件</div>
+          <input id="file-filter" type="search" placeholder="筛选文件与历史…" aria-label="筛选文件" />
+          <div id="opened-heading" class="file-group-heading" hidden>已打开</div>
+          <div id="file-list" class="file-list"></div>
+          <section id="history-panel">
+            <div class="file-group-heading history-heading"><span>最近浏览 · 30 天</span><button id="history-clear" type="button" title="删除全部历史">清除历史</button></div>
+            <div id="history-list" class="file-list"></div>
+            <p id="history-status" class="history-status" role="status"></p>
+            <details class="history-help"><summary>保存说明</summary><p>文件副本保存在 AIO，按账号隔离。单文件最多 4 MiB，最多 100 条 / 256 MiB；过期或超限自动移除。清空工作区保留历史。</p></details>
+          </section>
+        </aside>
+        <main class="preview-area">
+          <section id="dropzone" class="dropzone">
+            <p class="dropzone-title">拖拽任意格式文件到此处</p>
+            <p class="dropzone-hint">支持 DWG/DXF 图纸、3D 模型、PDF、Office 文档、图片、音视频、代码与压缩包</p>
+            <div id="formats" class="formats"></div>
+          </section>
+          <section id="workspace" class="workspace" hidden>
+            <div class="toolbar">
+              <span id="file-name" class="file-name"></span>
+              <span id="file-meta" class="file-meta"></span>
+              <div class="spacer"></div>
+              <span id="renderer" class="renderer"></span>
+              <a id="download" class="download" download>下载</a>
+            </div>
+            <div id="stage" class="stage"></div>
+          </section>
+        </main>
+      </div>
       <p id="note" class="note"></p>
       <p id="error" class="error" role="alert"></p>
     </div>

@@ -29,7 +29,7 @@ const drafts = new Map()
 let table = new Map()
 let objectUrl = null
 let disposeCurrent = null
-let rememberFile = () => {}
+let history = { remember: () => {}, render: () => {}, decorate: () => {}, id: () => null }
 
 // 解析信息（格式、实体数、跳过项）与实际错误分开显示，避免把提示当成失败。
 function report(message) {
@@ -127,7 +127,7 @@ async function open(file) {
       return
     }
     dom.stage.replaceChildren(host)
-    rememberFile(drafts.get(file)?.file ?? file)
+    history.remember(file)
     if (typeof cleanup === 'function') { disposeCurrent = cleanup }
   } catch (error) {
     if (ticket !== generation) { return }
@@ -150,15 +150,30 @@ async function openFiles(pickedFiles) {
 
 function renderFileList() {
   const query = dom.filter.value.toLocaleLowerCase()
-  const buttons = files.filter((file) => file.name.toLocaleLowerCase().includes(query)).map((file) => {
+  const seen = new Set()
+  const currentId = currentFile && history.id(currentFile)
+  const uniqueFiles = files.filter(file => {
+    const id = history.id(file) ?? file
+    if (currentId && id === currentId && file !== currentFile) { return false }
+    if (seen.has(id)) { return false }
+    seen.add(id)
+    return true
+  })
+  const buttons = uniqueFiles.filter((file) => file.name.toLocaleLowerCase().includes(query)).map((file) => {
     const button = document.createElement('button')
     button.type = 'button'
     button.textContent = `${file.name}${drafts.get(file)?.dirty ? ' · 未下载' : ''}`
     button.setAttribute('aria-current', String(file === currentFile))
     button.addEventListener('click', () => { void open(file) })
-    return button
+    const row = document.createElement('div')
+    row.className = 'file-row'
+    row.append(button)
+    history.decorate(file, row)
+    return row
   })
   dom.list.replaceChildren(...buttons)
+  document.getElementById('opened-heading').hidden = !buttons.length
+  history.render()
 }
 
 // 下载一份新文件，并立即在当前工作区打开；源文件保持原样。
@@ -254,7 +269,7 @@ async function boot() {
   const [caps, me] = await Promise.all([capabilities(), identity()])
   table = tableFrom(caps?.formats?.length ? caps.formats : FALLBACK_FORMATS)
   wireFormats()
-  rememberFile = mountHistory(async (file) => { files.push(file); await open(file) })
+  history = mountHistory(async (file) => { files.push(file); await open(file) }, () => files, renderFileList)
   dom.context.textContent = hasHost()
     ? `宿主租户 ${me.tenant_id || '未提供'} · 用户 ${me.user_id || '未提供'}`
     : '独立开发模式（未连接 AIO 宿主）'

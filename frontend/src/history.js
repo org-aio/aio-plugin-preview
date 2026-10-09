@@ -3,7 +3,7 @@ import { api, hasHost } from './host.js'
 const MAX_FILE_BYTES = 4 * 1024 * 1024
 
 // 只保存已经打开的文件，按服务器时间保留 30 天；列表不携带文件正文。
-export function mountHistory(openFile) {
+export function mountHistory(openFile, getFiles, onChange) {
   const panel = document.getElementById('history-panel')
   const list = document.getElementById('history-list')
   const status = document.getElementById('history-status')
@@ -11,11 +11,24 @@ export function mountHistory(openFile) {
   let pendingDelete = null
   let queue = Promise.resolve()
   let entries = []
+  const fileIds = new WeakMap()
+  const deleteButton = (entry) => {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'history-delete'
+    button.textContent = '×'
+    button.setAttribute('aria-label', `删除历史 ${entry.name}`)
+    button.title = '删除历史副本'
+    button.addEventListener('click', () => { pendingDelete = entry.id; dialog.showModal() })
+    return button
+  }
   const showError = (error) => { status.textContent = `历史保存失败：${error.message}` }
   const render = () => {
-    const query = document.getElementById('history-filter').value.toLocaleLowerCase()
+    const query = document.getElementById('file-filter').value.toLocaleLowerCase()
     list.replaceChildren()
-    for (const entry of entries.filter((item) => item.name.toLocaleLowerCase().includes(query))) {
+    const openedIds = new Set(getFiles().map(file => fileIds.get(file)))
+    const visible = entries.filter(item => !openedIds.has(item.id) && item.name.toLocaleLowerCase().includes(query))
+    for (const entry of visible) {
       const row = document.createElement('div')
       row.className = 'history-row'
       const button = document.createElement('button')
@@ -28,28 +41,23 @@ export function mountHistory(openFile) {
         try {
           const file = await api('POST', '/api/history/open', { id: entry.id })
           const bytes = Uint8Array.from(atob(file.content), (char) => char.charCodeAt(0))
-          await openFile(new File([bytes], file.name, { type: file.mime }))
+          const reopened = new File([bytes], file.name, { type: file.mime })
+          fileIds.set(reopened, entry.id)
+          await openFile(reopened)
         } catch (error) { showError(error) }
         finally { button.disabled = false }
       })
-      const meta = document.createElement('span')
-      meta.className = 'file-meta'
-      meta.textContent = `${new Date(entry.opened_at).toLocaleString()} · ${(entry.size / 1024).toFixed(1)} KB`
-      const remove = document.createElement('button')
-      remove.type = 'button'
-      remove.textContent = '删除'
-      remove.setAttribute('aria-label', `删除历史 ${entry.name}`)
-      remove.addEventListener('click', () => { pendingDelete = entry.id; dialog.showModal() })
-      row.append(button, meta, remove)
+      const metadata = `${new Date(entry.opened_at).toLocaleString()} · ${(entry.size / 1024).toFixed(1)} KB`
+      row.append(button, deleteButton(entry))
+      row.title = metadata
       list.append(row)
     }
-    if (!entries.length) { list.textContent = '暂无浏览历史' }
+    if (!visible.length) { list.textContent = query ? '无匹配的历史文件' : '暂无其他历史文件' }
   }
   const refresh = async () => {
     entries = await api('GET', '/api/history')
-    render()
+    onChange()
   }
-  document.getElementById('history-filter').addEventListener('input', render)
   document.getElementById('history-clear').addEventListener('click', () => {
     pendingDelete = 'all'
     dialog.showModal()
@@ -65,10 +73,10 @@ export function mountHistory(openFile) {
   })
   if (!hasHost()) {
     panel.hidden = true
-    return () => {}
+    return { remember: () => {}, render: () => {}, decorate: () => {}, id: () => null }
   }
   void refresh().catch(showError)
-  return (file) => {
+  const remember = (file) => {
     if (file.size > MAX_FILE_BYTES) {
       status.textContent = '该文件超过 4 MiB，未保存到历史；仍可正常预览'
       return
@@ -79,9 +87,14 @@ export function mountHistory(openFile) {
       for (let offset = 0; offset < bytes.length; offset += 16384) {
         binary += String.fromCharCode(...bytes.subarray(offset, offset + 16384))
       }
-      await api('POST', '/api/history', { name: file.name, mime: file.type, content: btoa(binary) })
+      const saved = await api('POST', '/api/history', { name: file.name, mime: file.type, content: btoa(binary) })
+      fileIds.set(file, saved.id)
       await refresh()
       status.textContent = '已保存到 30 天浏览历史'
     }).catch(showError)
   }
+  return { remember, render, id: file => fileIds.get(file), decorate: (file, row) => {
+    const entry = entries.find(item => item.id === fileIds.get(file))
+    if (entry) { row.append(deleteButton(entry)) }
+  } }
 }

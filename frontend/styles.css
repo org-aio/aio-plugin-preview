@@ -70,7 +70,7 @@ button.primary:hover { filter: brightness(1.08); color: #fff; }
   font-size: 12px; color: var(--muted); background: var(--bg);
 }
 
-.workspace { display: grid; grid-template-rows: auto auto; margin: 0 18px 18px; }
+.workspace { display: grid; grid-template-rows: auto auto; margin: 0; }
 .toolbar {
   display: flex; align-items: center; gap: 12px; padding: 8px 4px;
   border-bottom: 1px solid var(--border); min-width: 0;
@@ -102,8 +102,8 @@ button.primary:hover { filter: brightness(1.08); color: #fff; }
 .note { margin: 0 18px 6px; min-height: 18px; color: var(--muted); font-size: 12.5px; }
 .error { margin: 0 18px 14px; min-height: 18px; color: var(--danger); font-size: 13px; }
 
-.file-workbench { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 12px; }
-.file-browser { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); overflow: auto; max-height: 68vh; padding: 8px; }
+.file-workbench { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 12px; margin: 0 18px 18px; align-items: start; }
+.file-browser { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel); overflow: auto; max-height: calc(100vh - 100px); padding: 8px; }
 input, textarea { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font: inherit; }
 #file-filter { width: 100%; padding: 8px; font-size: 12px; }
 .file-list { display: grid; gap: 4px; margin-top: 8px; }
@@ -143,11 +143,21 @@ dialog::backdrop { background: #0008; }
 dialog h2 { font-size: 17px; margin-top: 0; }
 dialog p { color: var(--muted); font-size: 14px; }
 
-.history-panel { margin: 0 18px 12px; border: 1px solid var(--border); background: var(--panel); border-radius: 10px; }
-.history-panel summary { padding: 12px; cursor: pointer; font-size: 13px; font-weight: 600; }
-.history-hint { padding: 0 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
-.history-list { max-height: 240px; overflow: auto; padding: 10px; font-size: 13px; }
-.history-row { display: flex; gap: 12px; align-items: center; padding: 5px 0; }
-.history-open { flex: 1; min-width: 0; text-align: left; overflow-wrap: anywhere; }
-#history-filter { padding: 8px; min-width: 0; }
-@media (max-width: 680px) { .history-row { flex-wrap: wrap; } .history-row .file-meta { flex-basis: 100%; order: 3; } }
+.browser-heading { font-size: 14px; font-weight: 650; padding: 4px 0 10px; }
+.file-group-heading { font-size: 11px; color: var(--muted); padding: 14px 0 6px; }
+.history-heading { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.history-heading button { padding: 3px 6px; font-size: 11px; font-weight: 400; }
+.file-row, .history-row { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.file-row > button:first-child, .history-open { flex: 1; min-width: 0; }
+.file-list .history-delete { flex: none; padding: 6px; font-size: 16px; color: var(--muted); }
+.history-delete:hover { color: var(--danger); }
+.history-status, .history-help { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.history-help summary { cursor: pointer; }
+.preview-area { min-width: 0; }
+@media (max-width: 680px) {
+  .file-workbench { grid-template-columns: minmax(0, 1fr); }
+  .file-browser { max-height: 260px; }
+  .file-list { display: grid; }
+  .file-list button { flex: initial; }
+  .file-row > button:first-child, .history-open { flex: 1; }
+}
