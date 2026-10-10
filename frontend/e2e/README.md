@@ -7,3 +7,5 @@
 数据目录需要 `fixtures/sample.md`、`fixtures/cube.stp`、`fixtures/cube.igs`、`fixtures/sample.brep`、`dwg/example_2004.dxf`。工程模型样例来自 [occt-import-js 官方测试文件](https://github.com/kovacsv/occt-import-js/tree/main/test/testfiles)，分别为 `simple-basic-cube/cube.stp`、`cube-10x10mm/Cube 10x10.igs`、`cax-if-brep/as1_pe_203.brep`；DXF 来自 LibreDWG 官方测试样例。测试报告和截图保存在配置的输出目录。
 
 `history.cjs` 在真实宿主验证桌面和手机的历史保存、去重、清空保留、刷新重开、取消删除和删除后刷新。使用 `AIO_URL`、`AIO_SESSION`、`AIO_TEST_OUTPUT`，只创建和删除测试自己的记录。
+
+`spreadsheet.cjs` 使用外部私有模板（`AIO_TEST_FILE`）验收五个工作表的合并、字体、列宽、行高和打印区域。模板不得提交仓库。其余参数为 `AIO_URL`、`AIO_TEST_OUTPUT`，真实宿主额外使用 `AIO_SESSION`。
